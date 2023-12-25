@@ -1,22 +1,11 @@
 const express = require("express");
-const { validateToken } = require("../JWT");
 const router = express.Router();
-
-// router.use(checkActiveUser);
+const upload = require("../middleware/uploadImages")
 
 router.get("/", require("../controllers/cars/getAllCarsController"));
 router.get("/:carId", require("../controllers/cars/getSingleCarController"));
-router.post("/", require("../controllers/cars/carsController"));
+router.post("/", upload.array("images"), require("../controllers/cars/carsController"));
+router.put("/:carId", upload.array("images"), require("../controllers/cars/editSingleCarController"));
 router.delete("/:carId", require("../controllers/cars/deleteCarController"));
-
-// function checkActiveUser(req,res,next) {
-//     let user = req.session.user;
-//     if(user) {
-//         console.log("req.session.user, ", user);
-//             next();
-//         } else {
-//             console.log("Nije aktivan user");
-//         }
-// }
 
 module.exports = router;

@@ -4,7 +4,19 @@ const session = require("express-session");
 const mongoose = require("mongoose");
 const routes = require("./routes");
 const cors = require("cors");
+const path = require('path');
+
+require("./models/Car");
+
 app.use(cors());
+
+const Car = mongoose.model("Car");
+
+const crypto = require("crypto");
+const multer = require("multer");
+const {GridFsStorage} = require("multer-gridfs-storage");
+const Grid = require("gridfs-stream");
+const methodOverride = require("method-override");
 
 const mongoUrl = "mongodb://localhost/carsapp";
 
@@ -42,22 +54,23 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.post("/register", (req, res) => {
-  const { first_name, last_name, email, password } = req.body;
+  const { first_name, last_name, email, phone, city, password } = req.body;
+  const user = User.findOne(email);
   bcrypt.hash(password, 10).then((hash) => {
-    User.create({
+      User.create({
         first_name, 
         last_name, 
         email, 
+        phone,
+        city,
         password : hash
     })
       .then(() => {
         res.json("USER REGISTERED");
+      }).catch((err) => {
+        res.status(400).send({ error: "Korisnik vec postoji!" })
       })
-      .catch((err) => {
-        if (err) {
-          res.status(400).json({ error: err });
-        }
-      });
+    
   });
 });
 
@@ -67,7 +80,7 @@ app.post("/login", async (req, res) => {
   const user = await User.findOne( { email: email });
 
   if (!user) {
-    res.status(400).json({ error: "User Doesn't Exist" });
+    res.status(400).send({ error: "Korisnik ne postoji. Ukoliko nemate nalog možete se registrovati." });
     return;
   }
 
@@ -84,6 +97,8 @@ app.post("/login", async (req, res) => {
           first_name : user.first_name,
           last_name : user.last_name,
           email : user.email,
+          phone : user.phone,
+          city : user.city,
           created_at : user.created_at,
           updated_at : user.updated_at,
           _id : user._id,
@@ -92,6 +107,8 @@ app.post("/login", async (req, res) => {
     }
   });
 });
+
+app.use('/images', express.static(path.join(__dirname, '/images')));
 
 app.listen(8000, function() {
     console.log("Listening to port 8000");

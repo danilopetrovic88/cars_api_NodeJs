@@ -8,6 +8,8 @@ const UserSchema = new mongoose.Schema(
             type : String,
             unique : true
         },
+        phone : String,
+        city : String,
         password : String,
         created_at : {
             type: Date, 
